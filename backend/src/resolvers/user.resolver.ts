@@ -1,4 +1,5 @@
 import { Resolver, Query, Mutation, InputType, Arg, Field } from 'type-graphql';
+
 import User from '@entities/user.entity';
 import UserService from '@services/user.service';
 
@@ -10,8 +11,8 @@ export default class UserResolver {
 		return [];
 	}
 
-	@Query(() => User)
-	async user(userId: User['id']): Promise<User | null> {
+	@Query(() => User, { nullable: true })
+	async user(@Arg('userId', () => Number) userId: User['id']) {
 		// Fetch user from your database or API based on the provided ID
 		return null;
 	}
@@ -23,8 +24,6 @@ export default class UserResolver {
 		return await UserService.createUser(data);
 	}
 }
-
-//  ----------------------------------------------------------------
 
 @InputType()
 export class CreateUserInput {
