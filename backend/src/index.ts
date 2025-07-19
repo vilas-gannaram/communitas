@@ -3,11 +3,11 @@ import 'reflect-metadata';
 import { ApolloServer } from '@apollo/server';
 import { ApolloServerPluginDrainHttpServer } from '@apollo/server/plugin/drainHttpServer';
 import { expressMiddleware } from '@as-integrations/express5';
+
 import express from 'express';
 import http from 'http';
 import cors from 'cors';
 
-import { startStandaloneServer } from '@apollo/server/standalone';
 import { buildSchema } from 'type-graphql';
 
 import ENV from './config/env';
@@ -44,10 +44,6 @@ const schema = await buildSchema({
 	// },
 });
 
-interface MyContext {
-  token?: string;
-}
-
 // Required logic for integrating with Express
 const app = express();
 // Our httpServer handles incoming requests to our Express app.
@@ -57,9 +53,9 @@ const httpServer = http.createServer(app);
 
 // Same ApolloServer initialization as before, plus the drain plugin
 // for our httpServer.
-const server = new ApolloServer<MyContext>({
-  schema,
-  plugins: [ApolloServerPluginDrainHttpServer({ httpServer })],
+const server = new ApolloServer({
+	schema,
+	plugins: [ApolloServerPluginDrainHttpServer({ httpServer })],
 });
 // Ensure we wait for our server to start
 await server.start();
@@ -67,18 +63,19 @@ await server.start();
 // Set up our Express middleware to handle CORS, body parsing,
 // and our expressMiddleware function.
 app.use(
-  '/',
-  cors<cors.CorsRequest>(),
-  express.json(),
-  // expressMiddleware accepts the same arguments:
-  // an Apollo Server instance and optional configuration options
-  expressMiddleware(server, {
-    context: async ({ req }) => ({ token: req.headers.token }),
-  }),
+	'/graphql',
+	cors<cors.CorsRequest>(),
+	express.json(),
+	// expressMiddleware accepts the same arguments:
+	// an Apollo Server instance and optional configuration options
+	expressMiddleware(server, {
+		context: async ({ req }) => ({ req }),
+	})
 );
 
 // Modified server startup
 await new Promise<void>((resolve) =>
-  httpServer.listen({ port: ENV.PORT }, resolve),
+	httpServer.listen({ port: ENV.PORT }, resolve)
 );
+
 console.log(`🚀 Server ready at http://localhost:${ENV.PORT}/`);

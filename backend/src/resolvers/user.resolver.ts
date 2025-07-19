@@ -7,14 +7,14 @@ import UserService from '@services/user.service';
 export default class UserResolver {
 	@Query(() => [User])
 	async users(): Promise<User[]> {
-		// Fetch users from your database or API
-		return [];
+		const result = await UserService.findUsers();
+		return result;
 	}
 
 	@Query(() => User, { nullable: true })
 	async user(@Arg('userId', () => Number) userId: User['id']) {
-		// Fetch user from your database or API based on the provided ID
-		return null;
+		const result = await UserService.findById(userId);
+		return result;
 	}
 
 	@Mutation(() => User)
